@@ -6,7 +6,10 @@
     "jsRules": {},
     "rules": {
         "interface-name": false,
-        "no-console": false
+        "no-console": false,
+        "max-classes-per-file": false,
+        "no-string-literal": false,
+        "ordered-imports": false
     },
     "rulesDirectory": []
 }

@@ -1,35 +1,10 @@
-import fs, { read } from "fs";
+import { createIndex, readExportFile, Graph } from "./utils";
 
-interface ExportFile {
-    Content: {
-        Added: AnyObject[],
-    };
-}
+const exportFile = readExportFile("C:\\dev\\alcuin\\atls\\talentevo.json");
+// const resultFile = readResultFile("C:\\dev\\alcuin\\atls\\result.json");
+const index = createIndex(exportFile);
 
-interface AnyObject {
-    Id: string;
-    ObjectType: string;
-}
+const g = new Graph(index);
 
-interface Index {
-    [key: string]: AnyObject;
-}
-
-function readExport(fileName: string): ExportFile {
-    const buffer = fs.readFileSync(fileName);
-    const json = buffer.toString();
-    const data = JSON.parse(json) as ExportFile;
-    return data;
-}
-
-function createIndex(e: ExportFile): Index {
-    return e.Content.Added.reduce((acc, item) => {
-        acc[item.Id] = item;
-        return acc;
-    }, {} as Index);
-}
-
-const jsonExport = readExport("C:\\dev\\alcuin\\atls\\201806011502_talentevo.json");
-const index = createIndex(jsonExport);
-
-console.log(index);
+console.log(g.parentsOf("fd1c9854-d5ba-4c22-891f-a79000ca6417"));
+console.log(g.childrenOf("b64ca4d5-a726-487e-a3ff-a5b000e78501"));

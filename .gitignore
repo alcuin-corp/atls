@@ -2,3 +2,6 @@ node_modules
 dist
 
 .vscode
+
+result.json
+talentevo.json
