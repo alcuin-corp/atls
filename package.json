@@ -1,15 +1,11 @@
 {
   "name": "atls",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "git-commit": "git add -A && git commit -m \"WIP\"",
-    "git-push": "git push",
-    "lint": "tslint --fix --project tsconfig.json",
     "start": "ts-node src/index.ts",
-    "build": "tsc -p ./tsconfig.json",
-    "deploy": "npm run build && npm run git-commit && npm run git-push"
+    "build": "tsc -p ./tsconfig.json"
   },
   "bin": {
     "atls": "bin/atls.js"
