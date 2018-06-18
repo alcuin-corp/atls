@@ -4,13 +4,13 @@ import { readExportFile, readResultFile, printAllInducedFailures, createIndex, G
 const SHOW_INDUCED_ERRORS_TYPE = "show-induced-errors";
 
 const argparser = new ArgumentParser({
-    version: '0.0.1',
+    version: "0.0.1",
     addHelp: true,
-    description: "Tools for productivity"
+    description: "Tools for productivity",
 });
 
 const subparser = argparser.addSubparsers({
-    dest: "type"
+    dest: "type",
 });
 
 const showInducedErrorParser = subparser.addParser(SHOW_INDUCED_ERRORS_TYPE);
@@ -24,14 +24,14 @@ showInducedErrorParser.addArgument(["-e", "--result-file"], {
 });
 
 interface ShowInducedErrorsParser {
-    type: 
+    type:
         | typeof SHOW_INDUCED_ERRORS_TYPE;
     source_file: string;
     result_file: string;
 }
 
 type AnyParser =
-    | ShowInducedErrorsParser
+    | ShowInducedErrorsParser;
 
 const args = argparser.parseArgs() as AnyParser;
 
