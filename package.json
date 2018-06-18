@@ -9,9 +9,13 @@
     "build": "tsc -p ./tsconfig.json"
   },
   "devDependencies": {
+    "@types/argparse": "^1.0.34",
     "@types/node": "^10.3.3",
     "ts-node": "^6.1.1",
     "tslint": "^5.10.0",
     "typescript": "^2.9.2"
+  },
+  "dependencies": {
+    "argparse": "^1.0.10"
   }
 }
