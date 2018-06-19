@@ -1,4 +1,4 @@
-import { Graph } from "alcuin.tools";
+import { Graph } from "alcuin-tools";
 export interface IExportFile {
     Content: {
         Added: IAnyObject[];
