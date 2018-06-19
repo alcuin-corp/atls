@@ -1,6 +1,7 @@
 import { ArgumentParser } from "argparse";
-import { readExportFile, readResultFile, createIndex, Graph, printAllInducedFailures } from "./utils";
+import { readExportFile, readResultFile, createIndex, printAllInducedFailures } from "./utils";
 import { IParser } from "./Parser";
+import { Graph } from "alcuin.tools";
 
 const SHOW_INDUCED_ERRORS = "show-induced-errors";
 

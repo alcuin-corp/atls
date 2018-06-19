@@ -18,7 +18,7 @@ const devParser = main.addParser("dev", {
 function fold(middlewares) {
     return middlewares.reduce((acc, el) => {
         return (ctx, next) => {
-            acc(ctx, () => { el(ctx, next); });
+            el(ctx, () => { acc(ctx, next); });
         };
     });
 }
