@@ -1,18 +1,18 @@
 import fs from "fs";
 
-export interface ExportFile {
+export interface IExportFile {
     Content: {
-        Added: AnyObject[],
+        Added: IAnyObject[],
     };
 }
 
-export interface ResultFile {
+export interface IResultFile {
     Alerts: AnyAlert[];
 }
 
-export type AnyFile = ExportFile | ResultFile;
+export type AnyFile = IExportFile | IResultFile;
 
-export interface ServiceAlert {
+export interface IServiceAlert {
     Progress: number;
     Type: string;
     Name: "ServiceError";
@@ -22,7 +22,7 @@ export interface ServiceAlert {
     Message: string;
 }
 
-export interface ApiAlert {
+export interface IApiAlert {
     Progress: number;
     Id: string;
     Type: string;
@@ -38,9 +38,9 @@ export interface ApiAlert {
     };
 }
 
-export type AnyAlert = ApiAlert | ServiceAlert;
+export type AnyAlert = IApiAlert | IServiceAlert;
 
-export interface NormalizedAlert {
+export interface INormalizedAlert {
     ObjectId: string;
     Message: string;
     Status: number;
@@ -48,7 +48,7 @@ export interface NormalizedAlert {
     StackTrace: string;
 }
 
-export function isApiError(alert: AnyAlert): alert is ApiAlert {
+export function isApiError(alert: AnyAlert): alert is IApiAlert {
     return "ApiError" in alert;
 }
 
@@ -59,7 +59,7 @@ export function getAlertId(alert: AnyAlert): string {
     return alert.ObjectId;
 }
 
-export function normErr(err: AnyAlert): NormalizedAlert {
+export function normErr(err: AnyAlert): INormalizedAlert {
     if (isApiError(err)) {
         const result = {
             ObjectId: err.Id,
@@ -89,24 +89,24 @@ export interface IRef {
     RefType: "Required";
 }
 
-export interface Resource {
+export interface IResource {
     ["fr-FR"]: string;
     ["en-US"]: string;
 }
 
-export interface AnyObject {
+export interface IAnyObject {
     Id: string;
     ObjectType: string;
-    Name?: Resource;
+    Name?: IResource;
 }
 
-export interface WithLevel<T> { content: T; level: number; }
+export interface IWithLevel<T> { content: T; level: number; }
 
 export class Graph {
     private parents: Map<string, string[]>;
     private children: Map<string, string[]>;
 
-    constructor(private index: Map<string, AnyObject>) {
+    constructor(private index: Map<string, IAnyObject>) {
         this.parents = findParents(index);
         this.children = new Map<string, string[]>();
         for (const [childId, currentParents] of this.parents.entries()) {
@@ -116,7 +116,7 @@ export class Graph {
         }
     }
 
-    public get(id: string): AnyObject | undefined {
+    public get(id: string): IAnyObject | undefined {
         return this.index.get(id);
     }
 
@@ -130,7 +130,7 @@ export class Graph {
 
     public visitAll<T>(id: string,
                        followings: (id: string) => string[],
-                       visitor: (obj: AnyObject, lvl: number) => T): T[] {
+                       visitor: (obj: IAnyObject, lvl: number) => T): T[] {
         const result: T[] = [];
         const stack: Array<{currentId: string, currentLevel: number}> = [];
         stack.push({currentId: id, currentLevel: 0});
@@ -152,34 +152,33 @@ export class Graph {
         return result;
     }
 
-    public visitAllChildren<T>(id: string, visitor: (obj: AnyObject, lvl: number) => T): T[] {
+    public visitAllChildren<T>(id: string, visitor: (obj: IAnyObject, lvl: number) => T): T[] {
         return this.visitAll(id, this.childrenOf.bind(this), visitor);
     }
 
-    public getAllChildren(id: string): AnyObject[] {
+    public getAllChildren(id: string): IAnyObject[] {
         return this.visitAllChildren(id, (obj, _) => obj);
     }
 
-    public visitAllParents<T>(id: string, visitor: (obj: AnyObject, lvl: number) => T): T[] {
+    public visitAllParents<T>(id: string, visitor: (obj: IAnyObject, lvl: number) => T): T[] {
         return this.visitAll(id, this.parentsOf.bind(this), visitor);
     }
 
-    public getAllParents(id: string): AnyObject[] {
+    public getAllParents(id: string): IAnyObject[] {
         return this.visitAllParents(id, (obj, _) => obj);
     }
 }
 
-export function isExportFile(file: AnyFile): file is ExportFile {
+export function isExportFile(file: AnyFile): file is IExportFile {
     return "Content" in file;
 }
 
-export function isResultFile(file: AnyFile): file is ResultFile {
+export function isResultFile(file: AnyFile): file is IResultFile {
     return "Alerts" in file;
 }
 
-export function createIndex(e: ExportFile): Map<string, AnyObject> {
-
-    return e.Content.Added.reduce((acc, item) => acc.set(item.Id, item), new Map<string, AnyObject>());
+export function createIndex(e: IExportFile): Map<string, IAnyObject> {
+    return e.Content.Added.reduce((acc, item) => acc.set(item.Id, item), new Map<string, IAnyObject>());
 }
 
 export function readJSON(fileName: string): AnyFile {
@@ -189,7 +188,7 @@ export function readJSON(fileName: string): AnyFile {
     return data;
 }
 
-export function readExportFile(fileName: string): ExportFile {
+export function readExportFile(fileName: string): IExportFile {
     const file = readJSON(fileName);
     if (isExportFile(file)) {
         return file;
@@ -197,7 +196,7 @@ export function readExportFile(fileName: string): ExportFile {
     throw new Error(`File ${fileName} is not a proper export file.`);
 }
 
-export function readResultFile(fileName: string): ResultFile {
+export function readResultFile(fileName: string): IResultFile {
     const file = readJSON(fileName);
     if (isResultFile(file)) {
         return file;
@@ -232,14 +231,14 @@ export function* findReferences(self: any): IterableIterator<string> {
     }
 }
 
-export function getName(obj: AnyObject): string {
+export function getName(obj: IAnyObject): string {
     if (obj.Name) {
         return obj.Name["fr-FR"] || "no name";
     }
     return "no name";
 }
 
-export function *getAllFailingId(file: ResultFile): IterableIterator<string> {
+export function *getAllFailingId(file: IResultFile): IterableIterator<string> {
     for (const err of file.Alerts) {
         if (isApiError(err)) {
             yield err.Id;
@@ -249,20 +248,20 @@ export function *getAllFailingId(file: ResultFile): IterableIterator<string> {
     }
 }
 
-export function findParents(index: Map<string, AnyObject>): Map<string, string[]> {
+export function findParents(index: Map<string, IAnyObject>): Map<string, string[]> {
     return Array.from(index, ([id, o]) => {
         const refs = Array.from(findReferences(o));
         return {id, refs};
     }).reduce((acc, {id, refs}) => acc.set(id, refs), new Map<string, string[]>());
 }
 
-export function objectToString(obj?: AnyObject): string | undefined {
+export function objectToString(obj?: IAnyObject): string | undefined {
     if (obj) {
         return `"${getName(obj)}" (${obj.ObjectType}: ${obj.Id})`;
     }
 }
 
-export function printObject(obj?: AnyObject): void {
+export function printObject(obj?: IAnyObject): void {
     if (obj) { console.log(objectToString(obj)); }
 }
 
@@ -278,13 +277,13 @@ export function printAllChildren(first: string, g: Graph): void {
     });
 }
 
-export function errorToString(error?: NormalizedAlert): string | undefined {
+export function errorToString(error?: INormalizedAlert): string | undefined {
     if (error) {
         return `${error.Status} => "${error.Message}" (${error.ObjectId})`;
     }
 }
 
-export function printAllInducedFailures(g: Graph, resultFile: ResultFile) {
+export function printAllInducedFailures(g: Graph, resultFile: IResultFile) {
     const alerts = resultFile.Alerts.map((a) => normErr(a));
 
     for (const alert of alerts) {

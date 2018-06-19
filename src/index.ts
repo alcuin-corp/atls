@@ -1,7 +1,6 @@
 import { ArgumentParser } from "argparse";
-import { readExportFile, readResultFile, printAllInducedFailures, createIndex, Graph } from "./utils";
-
-const SHOW_INDUCED_ERRORS_TYPE = "show-induced-errors";
+import { IParser } from "./Parser";
+import ShowInducedErrors from "./ShowInducedErrorsParser";
 
 const argparser = new ArgumentParser({
     version: "0.0.1",
@@ -9,38 +8,71 @@ const argparser = new ArgumentParser({
     description: "Tools for productivity",
 });
 
-const subparser = argparser.addSubparsers({
-    dest: "type",
+const main = argparser.addSubparsers();
+
+const devParser = main.addParser("dev", {
+    addHelp: true,
+    description: "for devs",
 });
 
-const showInducedErrorParser = subparser.addParser(SHOW_INDUCED_ERRORS_TYPE);
-
-showInducedErrorParser.addArgument(["-s", "--source-file"], {
-    required: true,
-});
-
-showInducedErrorParser.addArgument(["-e", "--result-file"], {
-    required: true,
-});
-
-interface ShowInducedErrorsParser {
-    type:
-        | typeof SHOW_INDUCED_ERRORS_TYPE;
-    source_file: string;
-    result_file: string;
+interface IParserContext {
+    parser?: ArgumentParser;
+    args?: any;
 }
 
-type AnyParser =
-    | ShowInducedErrorsParser;
+type Middleware<T> = (ctx: T, next: () => void) => void;
 
-const args = argparser.parseArgs() as AnyParser;
-
-if (args.type === SHOW_INDUCED_ERRORS_TYPE) {
-    const source = readExportFile(args.source_file);
-    const results = readResultFile(args.result_file);
-
-    const index = createIndex(source);
-    const graph = new Graph(index);
-
-    printAllInducedFailures(graph, results);
+function fold<T>(middlewares: Array<Middleware<T>>): Middleware<T> {
+    return middlewares.reduce((acc, el) => {
+        return (ctx, next) => {
+            el(ctx, () => { acc(ctx, next); });
+        };
+    });
 }
+
+class MiddlewareStack<T> {
+    private stack: Array<Middleware<T>>;
+
+    constructor() {
+        this.stack = [];
+    }
+
+    public use(middleware: Middleware<T>): MiddlewareStack<T> {
+        this.stack.push(middleware);
+        return this;
+    }
+
+    public run(ctx: T): void {
+        fold(this.stack)(ctx, () => { });
+    }
+}
+
+class ParserMiddlewareStack extends MiddlewareStack<IParserContext> {
+    constructor() {
+        super();
+        this.use((myCtx, next) => {
+            const args = argparser.parseArgs();
+            myCtx.args = args;
+            next();
+        });
+    }
+
+    public useParser(parser: IParser): ParserMiddlewareStack {
+        stack.use((ctx, next) => {
+            if (ctx.parser) {
+                parser.add(ctx.parser);
+            }
+            next();
+            if (ctx.args) {
+                parser.handle(ctx.args);
+            }
+        });
+        return this;
+    }
+}
+
+const stack = new ParserMiddlewareStack();
+
+stack.useParser(ShowInducedErrors);
+
+stack.run({ parser: devParser });

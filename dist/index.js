@@ -1,28 +1,62 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const argparse_1 = require("argparse");
-const utils_1 = require("./utils");
-const SHOW_INDUCED_ERRORS_TYPE = "show-induced-errors";
+const ShowInducedErrorsParser_1 = __importDefault(require("./ShowInducedErrorsParser"));
 const argparser = new argparse_1.ArgumentParser({
     version: "0.0.1",
     addHelp: true,
     description: "Tools for productivity",
 });
-const subparser = argparser.addSubparsers({
-    dest: "type",
+const main = argparser.addSubparsers();
+const devParser = main.addParser("dev", {
+    addHelp: true,
+    description: "for devs",
 });
-const showInducedErrorParser = subparser.addParser(SHOW_INDUCED_ERRORS_TYPE);
-showInducedErrorParser.addArgument(["-s", "--source-file"], {
-    required: true,
-});
-showInducedErrorParser.addArgument(["-e", "--result-file"], {
-    required: true,
-});
-const args = argparser.parseArgs();
-if (args.type === SHOW_INDUCED_ERRORS_TYPE) {
-    const source = utils_1.readExportFile(args.source_file);
-    const results = utils_1.readResultFile(args.result_file);
-    const index = utils_1.createIndex(source);
-    const graph = new utils_1.Graph(index);
-    utils_1.printAllInducedFailures(graph, results);
+function fold(middlewares) {
+    return middlewares.reduce((acc, el) => {
+        return (ctx, next) => {
+            acc(ctx, () => { el(ctx, next); });
+        };
+    });
 }
+class MiddlewareStack {
+    constructor() {
+        this.stack = [];
+    }
+    use(middleware) {
+        this.stack.push(middleware);
+        return this;
+    }
+    run(ctx) {
+        fold(this.stack)(ctx, () => { });
+    }
+}
+class ParserMiddlewareStack extends MiddlewareStack {
+    constructor() {
+        super();
+        this.use((myCtx, next) => {
+            const args = argparser.parseArgs();
+            myCtx.args = args;
+            next();
+        });
+    }
+    useParser(parser) {
+        stack.use((ctx, next) => {
+            if (ctx.parser) {
+                parser.add(ctx.parser);
+            }
+            next();
+            if (ctx.args) {
+                parser.handle(ctx.args);
+            }
+        });
+        return this;
+    }
+}
+const stack = new ParserMiddlewareStack();
+stack.useParser(ShowInducedErrorsParser_1.default);
+stack.run({ parser: devParser });
+//# sourceMappingURL=index.js.map
