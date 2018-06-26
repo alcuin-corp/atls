@@ -1,9 +1,10 @@
 {
-  "name": "atls",
-  "version": "1.0.3",
+  "name": "alcuin-tools-atls",
+  "version": "1.0.5",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "relink": "yarn unlink \"alcuin-config-api\" && yarn link \"alcuin-config-api\"",
     "start": "ts-node src/index.ts",
     "build": "tsc -p ./tsconfig.json"
   },

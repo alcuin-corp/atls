@@ -1,7 +1,7 @@
 import { ArgumentParser } from "argparse";
-import { readExportFile, readResultFile, printAllInducedFailures, createIndex, Graph } from "./utils";
-
-const SHOW_INDUCED_ERRORS_TYPE = "show-induced-errors";
+import { IParser } from "./Parser";
+import ShowInducedErrorsParser from "./parsers/ShowInducedErrorsParser";
+import DuplicateParser from "./parsers/DuplicateParser";
 
 const argparser = new ArgumentParser({
     version: "0.0.1",
@@ -9,38 +9,30 @@ const argparser = new ArgumentParser({
     description: "Tools for productivity",
 });
 
-const subparser = argparser.addSubparsers({
-    dest: "type",
-});
+const parsers: IParser[] = [
+    ShowInducedErrorsParser,
+    DuplicateParser,
+];
 
-const showInducedErrorParser = subparser.addParser(SHOW_INDUCED_ERRORS_TYPE);
+const COMMAND_NAME = "cmd";
 
-showInducedErrorParser.addArgument(["-s", "--source-file"], {
-    required: true,
-});
+const subparser = argparser.addSubparsers({ dest: COMMAND_NAME });
 
-showInducedErrorParser.addArgument(["-e", "--result-file"], {
-    required: true,
-});
-
-interface ShowInducedErrorsParser {
-    type:
-        | typeof SHOW_INDUCED_ERRORS_TYPE;
-    source_file: string;
-    result_file: string;
+for (const parser of parsers) {
+    parser.add(subparser.addParser(parser.name));
 }
 
-type AnyParser =
-    | ShowInducedErrorsParser;
+const args = argparser.parseArgs([
+        "duplicate-object",
+        // "a",
+        // "C:\\dev\\alcuin\\reports\\1529066134_maj\\test.json",
+        "b70a6573-3541-4908-9d7b-a6d9016e740a",
+        "C:\\dev\\alcuin\\reports\\1529066134_maj\\talentevo_1528294488.json",
+        "--ignore-type", "DataStreamMapping", "ControlSecurity", "FieldTypeProfilePrivilege",
+    ]);
 
-const args = argparser.parseArgs() as AnyParser;
-
-if (args.type === SHOW_INDUCED_ERRORS_TYPE) {
-    const source = readExportFile(args.source_file);
-    const results = readResultFile(args.result_file);
-
-    const index = createIndex(source);
-    const graph = new Graph(index);
-
-    printAllInducedFailures(graph, results);
+for (const parser of parsers) {
+    if (args[COMMAND_NAME] === parser.name) {
+        parser.handle(args);
+    }
 }
