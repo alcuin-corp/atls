@@ -10,10 +10,6 @@
   version "10.3.3"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.3.3.tgz#8798d9e39af2fa604f715ee6a6b19796528e46c3"
 
-"alcuin-config-api@https://github.com/alcuin-corp/alcuin-config-api":
-  version "1.0.0"
-  resolved "https://github.com/alcuin-corp/alcuin-config-api#20e4d7582ea85497b2ba31dd7b80a81875e3bd04"
-
 ansi-regex@^2.0.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-2.1.1.tgz#c3b33ab5ee360d86e0e628f0468ae7ef27d654df"

@@ -1,25 +1,14 @@
 import {
     DependencyGraph,
-    IExportDto,
     isApiAlertDto,
     INormalizedAlert,
     normalizeAlert,
     IImportResultDto,
     IAnyObjectDto,
+    getName,
 } from "alcuin-config-api";
 
 export interface IWithLevel<T> { content: T; level: number; }
-
-export function createIndex(e: IExportDto): Map<string, IAnyObjectDto> {
-    return e.Content.Added.reduce((acc, item) => acc.set(item.Id, item), new Map<string, IAnyObjectDto>());
-}
-
-export function getName(obj: IAnyObjectDto): string {
-    if (obj.Name) {
-        return obj.Name["fr-FR"] || "no name";
-    }
-    return "no name";
-}
 
 export function *getAllFailingId(file: IImportResultDto): IterableIterator<string> {
     for (const err of file.Alerts) {
@@ -41,7 +30,7 @@ export function printObject(obj?: IAnyObjectDto): void {
     if (obj) { console.log(objectToString(obj)); }
 }
 
-export function printAllChildren(first: string, g: DependencyGraph): void {
+export function printChildren(first: string, g: DependencyGraph): void {
     const tabIt: (n: number) => string = (n) => {
         let i = -1;
         let r = "";
@@ -59,11 +48,11 @@ export function errorToString(error?: INormalizedAlert): string | undefined {
     }
 }
 
-export function printAllInducedFailures(g: DependencyGraph, resultFile: IImportResultDto) {
+export function printInducedFailures(g: DependencyGraph, resultFile: IImportResultDto) {
     const alerts = resultFile.Alerts.map((a) => normalizeAlert(a));
 
     for (const alert of alerts) {
-        const children = g.getAllChildren(alert.ObjectId);
+        const children = g.allChildrenOf(alert.ObjectId);
         if (children.length !== 0) {
             console.log(errorToString(alert));
             console.log(objectToString(g.get(alert.ObjectId)));

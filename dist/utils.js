@@ -1,17 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const alcuin_config_api_1 = require("alcuin-config-api");
-function createIndex(e) {
-    return e.Content.Added.reduce((acc, item) => acc.set(item.Id, item), new Map());
-}
-exports.createIndex = createIndex;
-function getName(obj) {
-    if (obj.Name) {
-        return obj.Name["fr-FR"] || "no name";
-    }
-    return "no name";
-}
-exports.getName = getName;
 function* getAllFailingId(file) {
     for (const err of file.Alerts) {
         if (alcuin_config_api_1.isApiAlertDto(err)) {
@@ -25,7 +14,7 @@ function* getAllFailingId(file) {
 exports.getAllFailingId = getAllFailingId;
 function objectToString(obj) {
     if (obj) {
-        return `"${getName(obj)}" (${obj.ObjectType}: ${obj.Id})`;
+        return `"${alcuin_config_api_1.getName(obj)}" (${obj.ObjectType}: ${obj.Id})`;
     }
 }
 exports.objectToString = objectToString;
@@ -35,7 +24,7 @@ function printObject(obj) {
     }
 }
 exports.printObject = printObject;
-function printAllChildren(first, g) {
+function printChildren(first, g) {
     const tabIt = (n) => {
         let i = -1;
         let r = "";
@@ -48,17 +37,17 @@ function printAllChildren(first, g) {
         console.log(`${tabIt(lvl)}${objectToString(obj)}`);
     });
 }
-exports.printAllChildren = printAllChildren;
+exports.printChildren = printChildren;
 function errorToString(error) {
     if (error) {
         return `${error.Status} => "${error.Message}" (${error.ObjectId})`;
     }
 }
 exports.errorToString = errorToString;
-function printAllInducedFailures(g, resultFile) {
+function printInducedFailures(g, resultFile) {
     const alerts = resultFile.Alerts.map((a) => alcuin_config_api_1.normalizeAlert(a));
     for (const alert of alerts) {
-        const children = g.getAllChildren(alert.ObjectId);
+        const children = g.allChildrenOf(alert.ObjectId);
         if (children.length !== 0) {
             console.log(errorToString(alert));
             console.log(objectToString(g.get(alert.ObjectId)));
@@ -72,5 +61,5 @@ function printAllInducedFailures(g, resultFile) {
         }
     }
 }
-exports.printAllInducedFailures = printAllInducedFailures;
+exports.printInducedFailures = printInducedFailures;
 //# sourceMappingURL=utils.js.map

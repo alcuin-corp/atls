@@ -1,6 +1,7 @@
 import { ArgumentParser } from "argparse";
 import { IParser } from "./Parser";
-import ShowInducedErrors from "./ShowInducedErrorsParser";
+import ShowInducedErrorsParser from "./parsers/ShowInducedErrorsParser";
+import DuplicateParser from "./parsers/DuplicateParser";
 
 const argparser = new ArgumentParser({
     version: "0.0.1",
@@ -8,71 +9,30 @@ const argparser = new ArgumentParser({
     description: "Tools for productivity",
 });
 
-const main = argparser.addSubparsers();
+const parsers: IParser[] = [
+    ShowInducedErrorsParser,
+    DuplicateParser,
+];
 
-const devParser = main.addParser("dev", {
-    addHelp: true,
-    description: "for devs",
-});
+const COMMAND_NAME = "cmd";
 
-interface IParserContext {
-    parser?: ArgumentParser;
-    args?: any;
+const subparser = argparser.addSubparsers({ dest: COMMAND_NAME });
+
+for (const parser of parsers) {
+    parser.add(subparser.addParser(parser.name));
 }
 
-type Middleware<T> = (ctx: T, next: () => void) => void;
+const args = argparser.parseArgs([
+        "duplicate-object",
+        // "a",
+        // "C:\\dev\\alcuin\\reports\\1529066134_maj\\test.json",
+        "b70a6573-3541-4908-9d7b-a6d9016e740a",
+        "C:\\dev\\alcuin\\reports\\1529066134_maj\\talentevo_1528294488.json",
+        "--ignore-type", "DataStreamMapping", "ControlSecurity", "FieldTypeProfilePrivilege",
+    ]);
 
-function fold<T>(middlewares: Array<Middleware<T>>): Middleware<T> {
-    return middlewares.reduce((acc, el) => {
-        return (ctx, next) => {
-            el(ctx, () => { acc(ctx, next); });
-        };
-    });
-}
-
-class MiddlewareStack<T> {
-    private stack: Array<Middleware<T>>;
-
-    constructor() {
-        this.stack = [];
-    }
-
-    public use(middleware: Middleware<T>): MiddlewareStack<T> {
-        this.stack.push(middleware);
-        return this;
-    }
-
-    public run(ctx: T): void {
-        fold(this.stack)(ctx, () => { });
+for (const parser of parsers) {
+    if (args[COMMAND_NAME] === parser.name) {
+        parser.handle(args);
     }
 }
-
-class ParserMiddlewareStack extends MiddlewareStack<IParserContext> {
-    constructor() {
-        super();
-        this.use((myCtx, next) => {
-            const args = argparser.parseArgs();
-            myCtx.args = args;
-            next();
-        });
-    }
-
-    public useParser(parser: IParser): ParserMiddlewareStack {
-        stack.use((ctx, next) => {
-            if (ctx.parser) {
-                parser.add(ctx.parser);
-            }
-            next();
-            if (ctx.args) {
-                parser.handle(ctx.args);
-            }
-        });
-        return this;
-    }
-}
-
-const stack = new ParserMiddlewareStack();
-
-stack.useParser(ShowInducedErrors);
-
-stack.run({ parser: devParser });

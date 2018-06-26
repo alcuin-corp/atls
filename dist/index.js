@@ -4,59 +4,33 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const argparse_1 = require("argparse");
-const ShowInducedErrorsParser_1 = __importDefault(require("./ShowInducedErrorsParser"));
+const ShowInducedErrorsParser_1 = __importDefault(require("./parsers/ShowInducedErrorsParser"));
+const DuplicateParser_1 = __importDefault(require("./parsers/DuplicateParser"));
 const argparser = new argparse_1.ArgumentParser({
     version: "0.0.1",
     addHelp: true,
     description: "Tools for productivity",
 });
-const main = argparser.addSubparsers();
-const devParser = main.addParser("dev", {
-    addHelp: true,
-    description: "for devs",
-});
-function fold(middlewares) {
-    return middlewares.reduce((acc, el) => {
-        return (ctx, next) => {
-            el(ctx, () => { acc(ctx, next); });
-        };
-    });
+const parsers = [
+    ShowInducedErrorsParser_1.default,
+    DuplicateParser_1.default,
+];
+const COMMAND_NAME = "cmd";
+const subparser = argparser.addSubparsers({ dest: COMMAND_NAME });
+for (const parser of parsers) {
+    parser.add(subparser.addParser(parser.name));
 }
-class MiddlewareStack {
-    constructor() {
-        this.stack = [];
-    }
-    use(middleware) {
-        this.stack.push(middleware);
-        return this;
-    }
-    run(ctx) {
-        fold(this.stack)(ctx, () => { });
+const args = argparser.parseArgs([
+    "duplicate-object",
+    // "a",
+    // "C:\\dev\\alcuin\\reports\\1529066134_maj\\test.json",
+    "b70a6573-3541-4908-9d7b-a6d9016e740a",
+    "C:\\dev\\alcuin\\reports\\1529066134_maj\\talentevo_1528294488.json",
+    "--ignore-type", "DataStreamMapping", "ControlSecurity", "FieldTypeProfilePrivilege",
+]);
+for (const parser of parsers) {
+    if (args[COMMAND_NAME] === parser.name) {
+        parser.handle(args);
     }
 }
-class ParserMiddlewareStack extends MiddlewareStack {
-    constructor() {
-        super();
-        this.use((myCtx, next) => {
-            const args = argparser.parseArgs();
-            myCtx.args = args;
-            next();
-        });
-    }
-    useParser(parser) {
-        stack.use((ctx, next) => {
-            if (ctx.parser) {
-                parser.add(ctx.parser);
-            }
-            next();
-            if (ctx.args) {
-                parser.handle(ctx.args);
-            }
-        });
-        return this;
-    }
-}
-const stack = new ParserMiddlewareStack();
-stack.useParser(ShowInducedErrorsParser_1.default);
-stack.run({ parser: devParser });
 //# sourceMappingURL=index.js.map

@@ -19,7 +19,6 @@
     "typescript": "^2.9.2"
   },
   "dependencies": {
-    "alcuin-config-api": "https://github.com/alcuin-corp/alcuin-config-api",
     "argparse": "^1.0.10"
   }
 }
