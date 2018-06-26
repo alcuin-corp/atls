@@ -1,93 +1,28 @@
 import fs from "fs";
-import { DependencyGraph } from "alcuin-config-api";
+import {
+    DependencyGraph,
+    IExportDto,
+    isExportDto,
+    AnyAlert,
+    isApiAlertDto,
+    INormalizedAlert,
+    normalizeAlert,
+} from "alcuin-config-api";
 
-export interface IExportFile {
-    Content: {
-        Added: IAnyObject[],
-    };
+export interface IResource {
+    ["fr-FR"]: string;
+    ["en-US"]: string;
 }
 
 export interface IResultFile {
     Alerts: AnyAlert[];
 }
 
-export type AnyFile = IExportFile | IResultFile;
-
-export interface IServiceAlert {
-    Progress: number;
-    Type: string;
-    Name: "ServiceError";
-    StackTrace: string;
-    ObjectId: string;
-    ObjectType: string;
-    Message: string;
+export function isResultFile(file: AnyFile): file is IResultFile {
+    return "Alerts" in file;
 }
 
-export interface IApiAlert {
-    Progress: number;
-    Id: string;
-    Type: string;
-    Name: string;
-    Message: string;
-    ObjectType: string;
-    ApiError: {
-        Status: number;
-        Details: {[key: string]: string};
-        Reason: string;
-        StackTrace: string;
-        ValidationErrors?: string[];
-    };
-}
-
-export type AnyAlert = IApiAlert | IServiceAlert;
-
-export interface INormalizedAlert {
-    ObjectId: string;
-    Message: string;
-    Status: number;
-    ObjectType: string;
-    StackTrace: string;
-}
-
-export function isApiError(alert: AnyAlert): alert is IApiAlert {
-    return "ApiError" in alert;
-}
-
-export function getAlertId(alert: AnyAlert): string {
-    if (isApiError(alert)) {
-        return alert.Id;
-    }
-    return alert.ObjectId;
-}
-
-export function normErr(err: AnyAlert): INormalizedAlert {
-    if (isApiError(err)) {
-        const result = {
-            ObjectId: err.Id,
-            Message: err.ApiError.Reason,
-            Status: err.ApiError.Status,
-            ObjectType: err.ObjectType,
-            StackTrace: err.ApiError.StackTrace,
-        };
-        if (err.ApiError.ValidationErrors) {
-            result.Message += " (" + err.ApiError.ValidationErrors.join(", ") + ")";
-        }
-        return result;
-    } else {
-        return {
-            ObjectId: err.ObjectId,
-            Message: err.Message,
-            Status: 500,
-            ObjectType: err.ObjectType,
-            StackTrace: err.StackTrace,
-        };
-    }
-}
-
-export interface IResource {
-    ["fr-FR"]: string;
-    ["en-US"]: string;
-}
+export type AnyFile = IExportDto | IResultFile;
 
 export interface IAnyObject {
     Id: string;
@@ -97,15 +32,7 @@ export interface IAnyObject {
 
 export interface IWithLevel<T> { content: T; level: number; }
 
-export function isExportFile(file: AnyFile): file is IExportFile {
-    return "Content" in file;
-}
-
-export function isResultFile(file: AnyFile): file is IResultFile {
-    return "Alerts" in file;
-}
-
-export function createIndex(e: IExportFile): Map<string, IAnyObject> {
+export function createIndex(e: IExportDto): Map<string, IAnyObject> {
     return e.Content.Added.reduce((acc, item) => acc.set(item.Id, item), new Map<string, IAnyObject>());
 }
 
@@ -116,9 +43,9 @@ export function readJSON(fileName: string): AnyFile {
     return data;
 }
 
-export function readExportFile(fileName: string): IExportFile {
+export function readExportFile(fileName: string): IExportDto {
     const file = readJSON(fileName);
-    if (isExportFile(file)) {
+    if (isExportDto(file)) {
         return file;
     }
     throw new Error(`File ${fileName} is not a proper export file.`);
@@ -141,7 +68,7 @@ export function getName(obj: IAnyObject): string {
 
 export function *getAllFailingId(file: IResultFile): IterableIterator<string> {
     for (const err of file.Alerts) {
-        if (isApiError(err)) {
+        if (isApiAlertDto(err)) {
             yield err.Id;
         } else {
             yield err.ObjectId;
@@ -178,7 +105,7 @@ export function errorToString(error?: INormalizedAlert): string | undefined {
 }
 
 export function printAllInducedFailures(g: DependencyGraph, resultFile: IResultFile) {
-    const alerts = resultFile.Alerts.map((a) => normErr(a));
+    const alerts = resultFile.Alerts.map((a) => normalizeAlert(a));
 
     for (const alert of alerts) {
         const children = g.getAllChildren(alert.ObjectId);
