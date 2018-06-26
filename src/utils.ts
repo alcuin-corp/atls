@@ -1,5 +1,5 @@
 import fs from "fs";
-import { Graph } from "alcuin-tools";
+import { DependencyGraph } from "alcuin-config-api";
 
 export interface IExportFile {
     Content: {
@@ -159,7 +159,7 @@ export function printObject(obj?: IAnyObject): void {
     if (obj) { console.log(objectToString(obj)); }
 }
 
-export function printAllChildren(first: string, g: Graph): void {
+export function printAllChildren(first: string, g: DependencyGraph): void {
     const tabIt: (n: number) => string = (n) => {
         let i = -1;
         let r = "";
@@ -177,7 +177,7 @@ export function errorToString(error?: INormalizedAlert): string | undefined {
     }
 }
 
-export function printAllInducedFailures(g: Graph, resultFile: IResultFile) {
+export function printAllInducedFailures(g: DependencyGraph, resultFile: IResultFile) {
     const alerts = resultFile.Alerts.map((a) => normErr(a));
 
     for (const alert of alerts) {
