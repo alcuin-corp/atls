@@ -1,7 +1,7 @@
 import { ArgumentParser } from "argparse";
 import { IParser } from "./Parser";
-import ShowInducedErrorsParser from "./parsers/ShowInducedErrorsParser";
-import DuplicateParser from "./parsers/DuplicateParser";
+import showInducedErrorsParser from "./parsers/ShowInducedErrorsParser";
+import parentsOfParser from "./parsers/VisitParser";
 
 const argparser = new ArgumentParser({
     version: "0.0.1",
@@ -10,8 +10,8 @@ const argparser = new ArgumentParser({
 });
 
 const parsers: IParser[] = [
-    ShowInducedErrorsParser,
-    DuplicateParser,
+    showInducedErrorsParser,
+    parentsOfParser,
 ];
 
 const COMMAND_NAME = "cmd";
@@ -22,14 +22,12 @@ for (const parser of parsers) {
     parser.add(subparser.addParser(parser.name));
 }
 
-const args = argparser.parseArgs([
-        "duplicate-object",
-        // "a",
-        // "C:\\dev\\alcuin\\reports\\1529066134_maj\\test.json",
-        "b70a6573-3541-4908-9d7b-a6d9016e740a",
+const args = argparser.parseArgs(
+    [
+        "visit", "parents-of", "b70a6573-3541-4908-9d7b-a6d9016e740a",
         "C:\\dev\\alcuin\\reports\\1529066134_maj\\talentevo_1528294488.json",
-        "--ignore-type", "DataStreamMapping", "ControlSecurity", "FieldTypeProfilePrivilege",
-    ]);
+    ],
+);
 
 for (const parser of parsers) {
     if (args[COMMAND_NAME] === parser.name) {

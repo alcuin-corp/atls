@@ -3,10 +3,8 @@ import { printInducedFailures } from "../utils";
 import { IParser } from "../Parser";
 import { DependencyGraph, readExportFile, readResultFile, createIndex } from "alcuin-config-api";
 
-const SHOW_INDUCED_ERRORS = "show-induced-errors";
-
 const result: IParser = {
-    get name() { return SHOW_INDUCED_ERRORS; },
+    get name() { return "show-induced-errors"; },
     add(parser: ArgumentParser): void {
         parser.addArgument(["-s", "--source"], { required: true });
         parser.addArgument(["-e", "--result"], { required: true });
