@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("./utils");
-const alcuin_tools_1 = require("alcuin-tools");
+const alcuin_config_api_1 = require("alcuin-config-api");
 const SHOW_INDUCED_ERRORS = "show-induced-errors";
 const parser = {
     add(currentParser) {
@@ -18,10 +18,10 @@ const parser = {
     },
     handle(args) {
         if (args[SHOW_INDUCED_ERRORS]) {
-            const source = utils_1.readExportFile(args.source_file);
-            const results = utils_1.readResultFile(args.result_file);
+            const source = alcuin_config_api_1.readExportFile(args.source_file);
+            const results = alcuin_config_api_1.readResultFile(args.result_file);
             const index = utils_1.createIndex(source);
-            const graph = new alcuin_tools_1.Graph(index);
+            const graph = new alcuin_config_api_1.DependencyGraph(index);
             utils_1.printAllInducedFailures(graph, results);
         }
     },

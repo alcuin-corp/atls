@@ -1,72 +1,27 @@
-import fs from "fs";
 import {
     DependencyGraph,
     IExportDto,
-    isExportDto,
-    AnyAlert,
     isApiAlertDto,
     INormalizedAlert,
     normalizeAlert,
+    IImportResultDto,
+    IAnyObjectDto,
 } from "alcuin-config-api";
-
-export interface IResource {
-    ["fr-FR"]: string;
-    ["en-US"]: string;
-}
-
-export interface IResultFile {
-    Alerts: AnyAlert[];
-}
-
-export function isResultFile(file: AnyFile): file is IResultFile {
-    return "Alerts" in file;
-}
-
-export type AnyFile = IExportDto | IResultFile;
-
-export interface IAnyObject {
-    Id: string;
-    ObjectType: string;
-    Name?: IResource;
-}
 
 export interface IWithLevel<T> { content: T; level: number; }
 
-export function createIndex(e: IExportDto): Map<string, IAnyObject> {
-    return e.Content.Added.reduce((acc, item) => acc.set(item.Id, item), new Map<string, IAnyObject>());
+export function createIndex(e: IExportDto): Map<string, IAnyObjectDto> {
+    return e.Content.Added.reduce((acc, item) => acc.set(item.Id, item), new Map<string, IAnyObjectDto>());
 }
 
-export function readJSON(fileName: string): AnyFile {
-    const buffer = fs.readFileSync(fileName);
-    const json = buffer.toString();
-    const data = JSON.parse(json) as AnyFile;
-    return data;
-}
-
-export function readExportFile(fileName: string): IExportDto {
-    const file = readJSON(fileName);
-    if (isExportDto(file)) {
-        return file;
-    }
-    throw new Error(`File ${fileName} is not a proper export file.`);
-}
-
-export function readResultFile(fileName: string): IResultFile {
-    const file = readJSON(fileName);
-    if (isResultFile(file)) {
-        return file;
-    }
-    throw new Error(`File ${fileName} is not a proper result file.`);
-}
-
-export function getName(obj: IAnyObject): string {
+export function getName(obj: IAnyObjectDto): string {
     if (obj.Name) {
         return obj.Name["fr-FR"] || "no name";
     }
     return "no name";
 }
 
-export function *getAllFailingId(file: IResultFile): IterableIterator<string> {
+export function *getAllFailingId(file: IImportResultDto): IterableIterator<string> {
     for (const err of file.Alerts) {
         if (isApiAlertDto(err)) {
             yield err.Id;
@@ -76,13 +31,13 @@ export function *getAllFailingId(file: IResultFile): IterableIterator<string> {
     }
 }
 
-export function objectToString(obj?: IAnyObject): string | undefined {
+export function objectToString(obj?: IAnyObjectDto): string | undefined {
     if (obj) {
         return `"${getName(obj)}" (${obj.ObjectType}: ${obj.Id})`;
     }
 }
 
-export function printObject(obj?: IAnyObject): void {
+export function printObject(obj?: IAnyObjectDto): void {
     if (obj) { console.log(objectToString(obj)); }
 }
 
@@ -104,7 +59,7 @@ export function errorToString(error?: INormalizedAlert): string | undefined {
     }
 }
 
-export function printAllInducedFailures(g: DependencyGraph, resultFile: IResultFile) {
+export function printAllInducedFailures(g: DependencyGraph, resultFile: IImportResultDto) {
     const alerts = resultFile.Alerts.map((a) => normalizeAlert(a));
 
     for (const alert of alerts) {
