@@ -6,8 +6,8 @@ import { AnyParser } from "./AnyParser";
 
 export const SHOW_INDUCED_ERRORS_CMD = "show-induced-errors";
 
-export interface IParserArgs {
-    parser_id: typeof SHOW_INDUCED_ERRORS_CMD;
+export interface IShowInducedErrorsParser {
+    parserId: typeof SHOW_INDUCED_ERRORS_CMD;
     source: string;
     result: string;
 }
@@ -19,7 +19,7 @@ const result: IParser = {
         parser.addArgument(["-e", "--result"], { required: true });
     },
     handle(args: AnyParser): void {
-        if (args.parser_id === SHOW_INDUCED_ERRORS_CMD) {
+        if (args.parserId === SHOW_INDUCED_ERRORS_CMD) {
             const source = readExportFile(args.source);
             const results = readResultFile(args.result);
 

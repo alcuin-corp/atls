@@ -1,5 +1,5 @@
-import { IParserArgs as IVisitParserArgs } from "./VisitParser";
-import { IParserArgs as IShowInducedErrorsParser } from "./ShowInducedErrorsParser";
+import { IVisitParserArgs } from "./VisitParser";
+import { IShowInducedErrorsParser } from "./ShowInducedErrorsParser";
 
 export type AnyParser =
     | IVisitParserArgs

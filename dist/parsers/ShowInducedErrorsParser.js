@@ -10,7 +10,7 @@ const result = {
         parser.addArgument(["-e", "--result"], { required: true });
     },
     handle(args) {
-        if (args.parser_id === exports.SHOW_INDUCED_ERRORS_CMD) {
+        if (args.parserId === exports.SHOW_INDUCED_ERRORS_CMD) {
             const source = alcuin_config_api_1.readExportFile(args.source);
             const results = alcuin_config_api_1.readResultFile(args.result);
             const index = alcuin_config_api_1.createIndex(source);
